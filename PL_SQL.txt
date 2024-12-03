@@ -1,0 +1,205 @@
+-- -------------------- Example: View --------------------
+
+-- Creating a view to display employee details
+CREATE OR REPLACE VIEW employee_view AS
+SELECT employee_id, first_name, last_name, salary, department_id
+FROM employees
+WHERE salary > 50000;
+
+-- Querying the view
+SELECT * FROM employee_view;
+
+-- -------------------- Example: Procedure --------------------
+
+-- Creating a simple procedure
+CREATE OR REPLACE PROCEDURE say_hello IS
+BEGIN
+    DBMS_OUTPUT.PUT_LINE('Hello, World!');
+END say_hello;
+/
+
+-- Calling the procedure
+BEGIN
+    say_hello;
+END;
+/
+
+-- -------------------- Example: Function --------------------
+
+-- Creating a function that returns the sum of two numbers
+CREATE OR REPLACE FUNCTION add_numbers (p_num1 IN NUMBER, p_num2 IN NUMBER)
+RETURN NUMBER IS
+    v_sum NUMBER;
+BEGIN
+    v_sum := p_num1 + p_num2;
+    RETURN v_sum;
+END add_numbers;
+/
+
+-- Calling the function
+DECLARE
+    result NUMBER;
+BEGIN
+    result := add_numbers(10, 20);
+    DBMS_OUTPUT.PUT_LINE('The sum is: ' || result);
+END;
+/
+
+-- -------------------- Example: Procedure with Parameters --------------------
+
+-- Creating a procedure with parameters
+CREATE OR REPLACE PROCEDURE greet_person (p_name IN VARCHAR2) IS
+BEGIN
+    DBMS_OUTPUT.PUT_LINE('Hello, ' || p_name || '!');
+END greet_person;
+/
+
+-- Calling the procedure with a parameter
+BEGIN
+    greet_person('John');
+END;
+/
+
+-- -------------------- Example: Procedure with Exception Handling --------------------
+
+-- Creating a procedure with exception handling
+CREATE OR REPLACE PROCEDURE divide_numbers (p_num1 IN NUMBER, p_num2 IN NUMBER) IS
+    v_result NUMBER;
+BEGIN
+    IF p_num2 = 0 THEN
+        RAISE_APPLICATION_ERROR(-20001, 'Division by zero is not allowed.');
+    ELSE
+        v_result := p_num1 / p_num2;
+        DBMS_OUTPUT.PUT_LINE('Result: ' || v_result);
+    END IF;
+EXCEPTION
+    WHEN OTHERS THEN
+        DBMS_OUTPUT.PUT_LINE('Error: ' || SQLERRM);
+END divide_numbers;
+/
+
+-- Calling the procedure with exception handling
+BEGIN
+    divide_numbers(10, 0); -- This will trigger the exception
+END;
+/
+
+-- -------------------- Example: Function with Exception Handling --------------------
+
+-- Creating a function with exception handling
+CREATE OR REPLACE FUNCTION safe_divide (p_num1 IN NUMBER, p_num2 IN NUMBER)
+RETURN NUMBER IS
+    v_result NUMBER;
+BEGIN
+    IF p_num2 = 0 THEN
+        RAISE_APPLICATION_ERROR(-20002, 'Cannot divide by zero.');
+    ELSE
+        v_result := p_num1 / p_num2;
+        RETURN v_result;
+    END IF;
+EXCEPTION
+    WHEN OTHERS THEN
+        DBMS_OUTPUT.PUT_LINE('Error: ' || SQLERRM);
+        RETURN NULL;
+END safe_divide;
+/
+
+-- Calling the function with exception handling
+DECLARE
+    result NUMBER;
+BEGIN
+    result := safe_divide(10, 0); -- This will return NULL due to error
+    DBMS_OUTPUT.PUT_LINE('Result: ' || result);
+END;
+/
+
+-- -------------------- Example: Loops --------------------
+
+-- Using a simple loop to print numbers 1 to 5
+DECLARE
+    i NUMBER := 1;
+BEGIN
+    LOOP
+        DBMS_OUTPUT.PUT_LINE('Number: ' || i);
+        i := i + 1;
+        EXIT WHEN i > 5;
+    END LOOP;
+END;
+/
+
+-- -------------------- Example: Cursor --------------------
+
+-- Creating a cursor to fetch employees who earn more than 50000
+DECLARE
+    CURSOR employee_cursor IS
+    SELECT employee_id, first_name, last_name, salary
+    FROM employees
+    WHERE salary > 50000;
+    
+    v_employee_id employees.employee_id%TYPE;
+    v_first_name employees.first_name%TYPE;
+    v_last_name employees.last_name%TYPE;
+    v_salary employees.salary%TYPE;
+BEGIN
+    OPEN employee_cursor;
+    LOOP
+        FETCH employee_cursor INTO v_employee_id, v_first_name, v_last_name, v_salary;
+        EXIT WHEN employee_cursor%NOTFOUND;
+        DBMS_OUTPUT.PUT_LINE('ID: ' || v_employee_id || ', Name: ' || v_first_name || ' ' || v_last_name || ', Salary: ' || v_salary);
+    END LOOP;
+    CLOSE employee_cursor;
+END;
+/
+
+-- -------------------- Example: Cursor with FOR LOOP --------------------
+
+-- Using a FOR loop with a cursor to iterate through employees
+DECLARE
+    CURSOR employee_cursor IS
+    SELECT employee_id, first_name, last_name, salary
+    FROM employees
+    WHERE salary > 50000;
+BEGIN
+    FOR employee_record IN employee_cursor LOOP
+        DBMS_OUTPUT.PUT_LINE('ID: ' || employee_record.employee_id || ', Name: ' || employee_record.first_name || ' ' || employee_record.last_name || ', Salary: ' || employee_record.salary);
+    END LOOP;
+END;
+/
+
+-- -------------------- Example: Dynamic SQL --------------------
+
+-- Using dynamic SQL to execute a query
+DECLARE
+    v_sql VARCHAR2(1000);
+BEGIN
+    v_sql := 'SELECT * FROM employees WHERE department_id = 10';
+    EXECUTE IMMEDIATE v_sql;
+END;
+/
+
+-- -------------------- Example: Nested Cursor --------------------
+
+-- Using nested cursors for different levels of processing
+DECLARE
+    CURSOR department_cursor IS
+    SELECT department_id, department_name FROM departments;
+    
+    CURSOR employee_cursor (p_department_id NUMBER) IS
+    SELECT employee_id, first_name, last_name FROM employees WHERE department_id = p_department_id;
+    
+    v_department_id departments.department_id%TYPE;
+    v_department_name departments.department_name%TYPE;
+BEGIN
+    FOR dept_rec IN department_cursor LOOP
+        v_department_id := dept_rec.department_id;
+        v_department_name := dept_rec.department_name;
+        
+        DBMS_OUTPUT.PUT_LINE('Department: ' || v_department_name);
+        
+        FOR emp_rec IN employee_cursor(v_department_id) LOOP
+            DBMS_OUTPUT.PUT_LINE('  Employee: ' || emp_rec.first_name || ' ' || emp_rec.last_name);
+        END LOOP;
+    END LOOP;
+END;
+/
+

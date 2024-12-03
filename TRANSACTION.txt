@@ -1,0 +1,45 @@
+SET TRANSACTION NAME 'example_transaction';
+
+ 
+
+SAVEPOINT BEFORE_INSERT;
+
+INSERT INTO CUSTOMER_NEW VALUES (2, 'John', -50);
+
+SAVEPOINT AFTER_INSERT;
+
+ 
+
+DECLARE
+
+    low_balance EXCEPTION;
+
+    cbalance NUMBER;
+
+BEGIN
+
+    SELECT balance INTO cbalance FROM customer_new WHERE cid = 2;
+
+    IF cbalance < 0 THEN
+
+        RAISE low_balance;
+
+    END IF;
+
+    COMMIT;
+
+EXCEPTION
+
+    WHEN low_balance THEN
+
+        ROLLBACK TO SAVEPOINT BEFORE_INSERT;
+
+        DBMS_OUTPUT.PUT_LINE('Rolled back due to low balance.');
+
+    WHEN OTHERS THEN
+
+        ROLLBACK;
+
+        DBMS_OUTPUT.PUT_LINE('Transaction failed.');
+
+END;

@@ -1,0 +1,102 @@
+-- ===============================
+-- SCRIPT: EVENT TRIGGERS IN SQL
+-- ===============================
+
+-- ======================================
+-- SECTION 1: DATABASE-LEVEL LOGOFF TRIGGER
+-- ======================================
+
+-- Step 1: Create a table for logging database-level events
+CREATE TABLE db_evnt_audit (
+    username VARCHAR2(30),    -- User who triggered the event
+    event_type VARCHAR2(30),  -- Type of event (e.g., LOGOFF)
+    logon_date DATE,          -- Logon date (if applicable)
+    logon_time VARCHAR2(15),  -- Logon time (if applicable)
+    logoff_date DATE,         -- Logoff date (if applicable)
+    logoff_time VARCHAR2(15)  -- Logoff time (if applicable)
+);
+
+-- Step 2: Create a database-level logoff trigger
+CREATE OR REPLACE TRIGGER db_lgof_audit
+BEFORE LOGOFF ON DATABASE
+BEGIN
+    -- Insert logoff details into the database event audit table
+    INSERT INTO db_evnt_audit VALUES(
+        USER,                     -- Current database user
+        ora_sysevent,             -- System event (e.g., LOGOFF)
+        NULL,                     -- Logon date (not applicable here)
+        NULL,                     -- Logon time (not applicable here)
+        SYSDATE,                  -- Logoff date
+        TO_CHAR(SYSDATE, 'hh24:mi:ss')  -- Logoff time in 24-hour format
+    );
+END;
+/
+
+-- =====================================
+-- SECTION 2: DATABASE-LEVEL STARTUP TRIGGER
+-- =====================================
+
+-- Step 1: Create a table for logging startup events
+CREATE TABLE startup_audit (
+    event_type VARCHAR2(15), -- Type of event (e.g., STARTUP)
+    event_date DATE,         -- Date of the event
+    event_time VARCHAR2(15)  -- Time of the event
+);
+
+-- Step 2: Create a database-level startup trigger
+CREATE OR REPLACE TRIGGER startup_audit
+AFTER STARTUP ON DATABASE
+BEGIN
+    -- Insert startup details into the audit table
+    INSERT INTO startup_audit VALUES(
+        ora_sysevent,              -- System event (e.g., STARTUP)
+        SYSDATE,                   -- Event date
+        TO_CHAR(SYSDATE, 'hh24:mi:ss')  -- Event time in 24-hour format
+    );
+END;
+/
+
+-- =====================================
+-- SECTION 3: SCHEMA-LEVEL LOGON TRIGGER
+-- =====================================
+
+-- Step 1: Create a table for schema-based event logging
+CREATE TABLE schema_event_audit (
+    event_type VARCHAR2(30),  -- Type of event (e.g., LOGON, LOGOFF)
+    username VARCHAR2(30),    -- Username of the schema
+    event_date DATE,          -- Date of the event
+    event_time VARCHAR2(15)   -- Time of the event
+);
+
+-- Step 2: Create a schema-level logon trigger
+CREATE OR REPLACE TRIGGER schema_logon_audit
+AFTER LOGON ON SCHEMA
+BEGIN
+    -- Insert logon details into the schema event audit table
+    INSERT INTO schema_event_audit VALUES(
+        ora_sysevent,              -- System event (e.g., LOGON)
+        USER,                      -- Current database user
+        SYSDATE,                   -- Event date
+        TO_CHAR(SYSDATE, 'hh24:mi:ss')  -- Event time in 24-hour format
+    );
+END;
+/
+
+-- =====================================
+-- SECTION 4: SCHEMA-LEVEL LOGOFF TRIGGER
+-- =====================================
+
+-- Step 1: Create a schema-level logoff trigger
+CREATE OR REPLACE TRIGGER schema_logoff_audit
+BEFORE LOGOFF ON SCHEMA
+BEGIN
+    -- Insert logoff details into the schema event audit table
+    INSERT INTO schema_event_audit VALUES(
+        ora_sysevent,              -- System event (e.g., LOGOFF)
+        USER,                      -- Current database user
+        SYSDATE,                   -- Event date
+        TO_CHAR(SYSDATE, 'hh24:mi:ss')  -- Event time in 24-hour format
+    );
+END;
+/
+

@@ -1,0 +1,127 @@
+SET SERVEROUTPUT ON;
+
+-- BEFORE INSERT
+
+CREATE OR REPLACE TRIGGER bi_Superheroes
+
+BEFORE INSERT ON superheroes
+
+FOR EACH ROW
+
+ENABLE
+
+DECLARE
+
+    v_user VARCHAR2 (15); -- Declare variable for the current user
+
+BEGIN
+
+    SELECT user INTO v_user FROM dual; -- Fetch the current database user
+
+    DBMS_OUTPUT.PUT_LINE('You Just Inserted a Row Mr.' || v_user); -- Display message
+
+END;
+
+-- Before update
+
+CREATE OR REPLACE TRIGGER before_update_superheroes
+
+BEFORE UPDATE ON superheroes
+
+FOR EACH ROW
+
+ENABLE
+
+DECLARE
+
+    v_user VARCHAR2(15); -- Variable for the username
+
+BEGIN
+
+    SELECT user INTO v_user FROM dual; -- Fetch the current user
+
+    DBMS_OUTPUT.PUT_LINE('User ' || v_user || ' is updating the superhero with ID: ' || :OLD.id);
+
+    DBMS_OUTPUT.PUT_LINE('Old Name: ' || :OLD.name || ', New Name: ' || :NEW.name);
+
+END;
+
+-- before delete
+
+CREATE OR REPLACE TRIGGER before_delete_superheroes
+
+BEFORE DELETE ON superheroes
+
+FOR EACH ROW
+
+ENABLE
+
+DECLARE
+
+    v_user VARCHAR2(15); -- Variable for the username
+
+BEGIN
+
+    SELECT user INTO v_user FROM dual; -- Fetch the current user
+
+    DBMS_OUTPUT.PUT_LINE('User ' || v_user || ' is deleting the superhero with ID: ' || :OLD.id);
+
+    DBMS_OUTPUT.PUT_LINE('Deleted Superhero Name: ' || :OLD.name);
+
+END;
+
+ 
+
+-- Audit table for insert, update, delete
+
+CREATE OR REPLACE trigger superheroes_audit
+
+BEFORE INSERT OR DELETE OR UPDATE ON superheroes
+
+FOR EACH ROW ENABLE
+
+DECLARE
+
+    v_user varchar2 (30);
+
+    v_date varchar2(30);
+
+BEGIN
+
+    -- Fetch the current user and date/time
+
+    SELECT user, TO_CHAR(sysdate, 'DD/MON/YYYY HH24:MI:SS') INTO v_user, v_date FROM dual;
+
+ 
+
+    -- If an INSERT operation is happening
+
+    IF INSERTING THEN
+
+        INSERT INTO sh_audit (new_name, old_name, user_name, entry_date, operation)
+
+        VALUES(:NEW.SH_NAME, NULL, v_user, v_date, 'Insert');
+
+ 
+
+    -- If a DELETE operation is happening
+
+    ELSIF DELETING THEN
+
+        INSERT INTO sh_audit (new_name, old_name, user_name, entry_date, operation)
+
+        VALUES(NULL, :OLD.SH_NAME, v_user, v_date, 'Delete');
+
+ 
+
+    -- If an UPDATE operation is happening
+
+    ELSIF UPDATING THEN
+
+        INSERT INTO sh_audit (new_name, old_name, user_name, entry_date, operation)
+
+        VALUES(:NEW.SH_NAME, :OLD.SH_NAME, v_user, v_date, 'Update');
+
+    END IF;
+
+END;

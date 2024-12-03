@@ -1,0 +1,99 @@
+-- ===========================================================
+-- Topic: Examples of INSTEAD OF Triggers in Oracle SQL
+-- ===========================================================
+
+-- ================================
+-- Step 1: Create Tables
+-- ================================
+
+CREATE TABLE trainer (
+    full_name VARCHAR2(20)
+);
+
+CREATE TABLE subject (
+    subject_name VARCHAR2(15)
+);
+
+-- Insert dummy data into the tables
+INSERT INTO trainer VALUES ('Faraz Ahmed');
+INSERT INTO subject VALUES ('Database Systems');
+
+-- ================================
+-- Step 2: Create a Non-Updatable View
+-- ================================
+
+CREATE VIEW db_lab_09_view AS
+SELECT full_name, subject_name 
+FROM trainer, subject;
+
+-- This view is non-updatable because of its structure.
+-- Any DML operation (INSERT, UPDATE, DELETE) will raise an error.
+
+-- ================================
+-- Step 3: INSTEAD OF INSERT Trigger
+-- ================================
+
+-- Create an INSTEAD OF INSERT trigger to allow data insertion
+-- into the non-updatable view by directing it to the base tables.
+
+CREATE OR REPLACE TRIGGER tr_Io_Insert
+INSTEAD OF INSERT ON db_lab_09_view
+FOR EACH ROW
+BEGIN
+    INSERT INTO trainer (full_name) VALUES (:NEW.full_name);
+    INSERT INTO subject (subject_name) VALUES (:NEW.subject_name);
+END;
+/
+
+-- Test the Trigger
+-- INSERT INTO db_lab_09_view VALUES ('Ali Khan', 'Operating Systems');
+
+-- ================================
+-- Step 4: INSTEAD OF UPDATE Trigger
+-- ================================
+
+-- Create an INSTEAD OF UPDATE trigger to allow updates on the view.
+
+CREATE OR REPLACE TRIGGER io_update
+INSTEAD OF UPDATE ON db_lab_09_view
+FOR EACH ROW
+BEGIN
+    UPDATE trainer 
+    SET full_name = :NEW.full_name
+    WHERE full_name = :OLD.full_name;
+
+    UPDATE subject 
+    SET subject_name = :NEW.subject_name
+    WHERE subject_name = :OLD.subject_name;
+END;
+/
+
+-- Test the Trigger
+-- UPDATE db_lab_09_view
+-- SET full_name = 'Ahmed Ali', subject_name = 'Data Science'
+-- WHERE full_name = 'Faraz Ahmed' AND subject_name = 'Database Systems';
+
+-- ================================
+-- Step 5: INSTEAD OF DELETE Trigger
+-- ================================
+
+-- Create an INSTEAD OF DELETE trigger to allow deletions from the view.
+
+CREATE OR REPLACE TRIGGER io_delete
+INSTEAD OF DELETE ON db_lab_09_view
+FOR EACH ROW
+BEGIN
+    DELETE FROM trainer WHERE full_name = :OLD.full_name;
+    DELETE FROM subject WHERE subject_name = :OLD.subject_name;
+END;
+/
+
+-- Test the Trigger
+-- DELETE FROM db_lab_09_view WHERE full_name = 'Faraz Ahmed';
+
+-- ===========================================================
+-- Lab Tasks: Implementing DML Triggers
+-- - Use these triggers to handle INSERT, UPDATE, and DELETE
+--   operations on the non-updatable view.
+-- ===========================================================
+

@@ -1,0 +1,70 @@
+1. Use to switch or create a database:
+   use <database_name>
+
+2. Show all databases:
+   show dbs
+
+3. Drop the current database:
+   db.dropDatabase()
+
+4. Show all collections in the current database:
+   show collections
+
+5. Drop a collection:
+   db.<collection_name>.drop()
+
+6. Insert one document:
+   db.<collection_name>.insertOne(<document>)
+
+7. Insert multiple documents:
+   db.<collection_name>.insertMany([<document1>, <document2>])
+
+8. Find all documents:
+   db.<collection_name>.find()
+
+9. Find one document:
+   db.<collection_name>.findOne(<query>)
+
+10. Find documents with projection:
+    db.<collection_name>.find(<query>, <projection>)
+
+11. Update one document:
+    db.<collection_name>.updateOne(<filter>, <update>)
+
+12. Update many documents:
+    db.<collection_name>.updateMany(<filter>, <update>)
+
+13. Replace one document:
+    db.<collection_name>.replaceOne(<filter>, <replacement>)
+
+14. Delete one document:
+    db.<collection_name>.deleteOne(<filter>)
+
+15. Delete many documents:
+    db.<collection_name>.deleteMany(<filter>)
+
+16. Create an index:
+    db.<collection_name>.createIndex(<index specification>)
+
+17. List all indexes for a collection:
+    db.<collection_name>.getIndexes()
+
+18. Enable sharding on a database:
+    sh.enableSharding(<database_name>)
+
+19. Initiate a replica set:
+    rs.initiate()
+
+20. Add a member to the replica set:
+    rs.add(<hostname>)
+
+21. Backup a MongoDB database:
+    mongodump --out <backup_directory>
+
+22. Restore a MongoDB database:
+    mongorestore <backup_directory>
+
+23. Create a user:
+    db.createUser(<user>)
+
+
